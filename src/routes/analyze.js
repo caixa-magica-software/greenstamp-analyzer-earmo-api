@@ -9,7 +9,7 @@ const https = require('https');
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    const resultsDir = process.env.UPLOADS_HOME || "./data/uploads"
+    const resultsDir = process.env.UPLOADS_HOME || "/data/uploads"
     const resultsPath = `${resultsDir}/${Date.now()}`
     console.log("Upload on", resultsPath)
     fs.mkdirSync(resultsPath, { recursive: true })

@@ -13,8 +13,7 @@ services:
       - 4003:3000
     environment:
       DELIVER_RESULTS_ENDPOINT: 'http://51.210.255.156:3000/api/result'
-      EARMO_HOME: ${EARMO_HOME}
-      DEX2JAR_HOME: ${DEX2JAR_HOME}
+      EARMO_HOME: '/data/'
       UPLOADS_HOME: ${UPLOADS_HOME}
     volumes:
       - '/data/greenstamp/analyzer-earmo-api:/data'
