@@ -9,11 +9,12 @@ e.g.
 DELIVER_RESULTS_ENDPOINT=http://51.210.255.156:3000/api/result
 ```
 
-Declare env variable EARMO_HOME with the forder of kadabra.
+Declare env variable EARMO_HOME with the forder of Earmo.
 e.g.
 
 ```
-EARMO_HOME=/home/campos/git/greenstamp/analyzer-earmo-api/kadabra
+EARMO_HOME=/data/greenstamp/analyzer-earmo-api
+UPLOADS_HOME=/data/greenstamp/analyzer-earmo-api/uploads
 ```
 
 
