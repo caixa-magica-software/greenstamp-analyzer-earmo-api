@@ -1,7 +1,8 @@
 const axios = require('axios')
 const router = require('express').Router()
 const multer = require('multer')
-const { exec } = require("child_process");
+const { execSync } = require('child_process');
+const path = require('path');
 const fs = require('fs');
 const https = require('https');
 
@@ -92,7 +93,7 @@ const remove = (resultsPath) => {
 const execute = (resultsPath, apkPath, appName, packageName, version, url, metadata, tests) => {
   console.log("Executing tests for:", apkPath)
   const resultsEndpoint = process.env.DELIVER_RESULTS_ENDPOINT || "http://localhost:3000/api/result"
-  doTests(resultsPath, apkPath, tests)
+  doTests(resultsPath, apkPath, tests, packageName)
     .then(results => {
       const testResponse = {
         appName: appName,
@@ -111,43 +112,205 @@ const execute = (resultsPath, apkPath, appName, packageName, version, url, metad
     .catch(error => console.log("ERROR:", error))
 }
 
-const doTests = (resultsPath, apkPath, tests) => {
-  return new Promise((resolve, reject) => {
-    const kadabraHome = process.env.KADABRA_HOME
-    console.log(`cd ${resultsPath} && java -jar ${kadabraHome}/kadabra.jar ${kadabraHome}/main.js -p ${apkPath} -WC -APF package! -o output -s -X -C`);
-    exec(`cd ${resultsPath} && java -jar ${kadabraHome}/kadabra.jar ${kadabraHome}/main.js -p ${apkPath} -WC -APF package! -o output -s -X -C`, (error, stdout, stderr) => {
-      if(error) console.log("error:", error)
-      if(stdout) console.log("stdout:", stdout)
-      if(stderr) console.log("stderr:", stderr)
-      // Some of apks return error but still creates the results.json file
-      fs.readFile(`${resultsPath}/results.json`, (err, data) => {
-        if (err) reject(err);
-        else {
-          const results = JSON.parse(data);
-          console.log(results);
-          const testResults = tests.map(test => {
-            const result = Object.keys(results.detectors).find(detector => detector == test.name)
-            return {
-              name: test.name,
-              parameters: test.parameters,
-              result: result ? results.detectors[result].length : "NA",
-              unit: "warnings"
-            }
-          })
-          console.log("Results for:", apkPath)
-          console.log(testResults)
-          // This analyzer does not support arguments to define which analyzers should be used dynamically
-          console.log("Should filter for...")
-          const testNames = tests.map(test => test.name)
-          console.log(testNames)
-          console.log("After filtering")
-          const filteredTests = testResults.filter((testResult) => testNames.indexOf(testResult.testName) <= 0)
-          console.log("Filtered test results:", filteredTests)
-          remove(resultsPath)
-          resolve(filteredTests)
-        }
-      })
-    })
+function delay(ms) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}
+
+function copyFolder(sourceDir, destinationDir, filePattern) {
+  // Create destination directory if it doesn't exist
+
+  console.log('##################################')
+  console.log('Source directory:', sourceDir)
+  console.log('Destination directory:', destinationDir)
+  console.log('FilePattern:', filePattern)
+  console.log('##################################')
+
+  try{
+
+    if (!fs.existsSync(destinationDir)) {
+      fs.mkdirSync(destinationDir, { recursive: true });
+    }
+  
+    // Read all files and subdirectories in the source directory
+    try{
+      const files = fs.readdirSync(sourceDir);
+          // Iterate over each file/directory
+      files.forEach((file) => {
+      const sourcePath = path.join(sourceDir, file);
+      const destinationPath = path.join(destinationDir, file);
+  
+      // Check if it's a file or directory
+      if (fs.lstatSync(sourcePath).isFile()) {
+      // If filePattern is provided and file does not match the pattern, skip copying
+      if (filePattern && !file.includes(filePattern)) {
+        return;
+      }
+
+      // Copy files
+      fs.copyFileSync(sourcePath, destinationPath);
+      console.log(`Copied file: ${sourcePath} to ${destinationPath}`);
+      } else {
+        // Recursively copy the subdirectory
+        copyFolder(sourcePath, destinationPath);
+      }
+    });
+    }catch (err){
+      console.error('An error occurred while readdirSync:', err);
+    }
+    
+  }catch (err) {
+    console.error('An error occurred while copying the folder:', err);
+  } 
+}
+
+function searchPatternInIniFiles(directory, pattern) {
+  const results = [];
+
+  // Read the directory contents
+  fs.readdirSync(directory).forEach((file) => {
+    const filePath = path.join(directory, file);
+
+    // Check if it's a file with the ".ini" extension
+    if (fs.lstatSync(filePath).isFile() && path.extname(file).toLowerCase() === '.ini') {
+      // Extract the word after "for" in the filename
+      const nameMatch = /for\s+(\w+)/i.exec(file);
+      const name = nameMatch ? nameMatch[1] : '';
+
+      // Read the contents of the file
+      const data = fs.readFileSync(filePath, 'utf8');
+
+      // Use a regular expression to search for the pattern
+      const regex = new RegExp(`\\b${pattern}\\b`, 'g');
+      const match = regex.exec(data);
+      if (match) {
+        const value = match[0].split(':')[1].trim();
+        results.push({
+          name: name,
+          parameters: 'Earmo Analyze Tool',
+          result: value,
+          unit: 'detections',
+        });
+      }
+    }
+  });
+
+  return results;
+}
+
+
+function createTextFile(pathProjecttoAnalize, outputDirectory, filePath) {
+  const content = `pathProjecttoAnalize = ${pathProjecttoAnalize}
+##/CH/ifa/draw
+populationSize =100
+maxEvaluations =1000
+initialSizeRefactoringSequence =0
+##329
+crossOverProbability=0.8
+mutationProbability=0.8
+maxTimeExecutionMs=0
+qmood =0
+#modes 0 class files; 1 java files; 2 jar files
+generateFromSourceCode=1
+generateAllRefOpp=1
+initialcountAntipatterns=1
+copyRelevantDirs=0
+#for linux to fix the problem of Wilcoxon R files with wrong path
+#ResultsTesting/
+outputDirectory = ${outputDirectory}
+#./ResultsTesting/
+Trace=0
+Threads=4
+initialSizeRefactoringSequencePerc=50
+independentRuns=1
+## Joules expressed in double format. This value has to be >0 if not the Energy usage of an app will be 0
+originalAppEnergyUsage=21.28127
+detectedAntipatterns=LargeClassLowCohesion,Blob,RefusedParentBequest,LazyClass,LongParameterList,SpaghettiCode,SpeculativeGenerality,BindingResources2Early,ReleasingResources2Late,InternalGetterAndSettersAndroid,HashMapUsageAndroid
+#RefusedParentBequest,LazyClass,LongParameterList,SpaghettiCode,LargeClassLowCohesion,Blob,SpeculativeGenerality,BindingResources2Early,ReleasingResources2Late,InternalGetterAndSettersAndroid,HashMapUsageAndroid
+androidEnergyDeltas=deltas.txt`;
+
+  fs.writeFile(filePath, content, (err) => {
+    if (err) {
+      console.error('Error creating the file:', err);
+      return;
+    }
+    console.log('Config file created successfully!');
+  });
+}
+
+const doTests = (resultsPath, apkPath, tests, packageName) => {
+  return new Promise(async (resolve, reject) => {
+    const earmoHome = process.env.EARMO_HOME
+
+    console.log("resultsPath: " + resultsPath);
+    console.log("apkPath: " + apkPath);
+    console.log("packageName: " + packageName);
+    
+    var cmd = `cd ${resultsPath} && time ${earmoHome}/jadx/bin/jadx ${apkPath} -d ${resultsPath}/jadx`;
+    console.log("cmd: "+cmd);
+    await delay(2000); // Delay of 2000 milliseconds (2 seconds)
+
+    try {
+      const output = execSync(cmd);
+      console.log(`Command jadx output: ${output.toString()}`);
+    } catch (err) {
+      console.error(`Command jadx execution error: ${err}`);
+      reject(err);
+    }
+    
+    console.log("Copy source files ...")
+    const packagePath = `/${packageName.split('.').slice(0, 2).join('/')}/`;
+    console.log("packagePath:" + packagePath);
+    const sourceDirectory = `${resultsPath}/jadx/sources/` + packagePath;
+    const destinationDirectory = `${resultsPath}/sources/` + packagePath;
+    
+    try {
+      copyFolder(sourceDirectory, destinationDirectory);
+    } catch (err) {
+      console.error('An error occurred:', err);
+      reject(err);
+    }
+
+    const outputDirectory = `${resultsPath}/test`;
+    const filePath = `${resultsPath}/my_conf.prop`;
+
+    createTextFile(destinationDirectory, outputDirectory, filePath);
+
+    try {
+      copyFolder(`${earmoHome}/earmo_executable/`, `${earmoHome}/earmo/`);
+    } catch (err) {
+      console.error('An error occurred copying earmo_executable:', err);
+      reject(err);
+    }
+
+    var cmd = `cd ${earmoHome}/earmo/ && ls && time java -jar RefactoringStandarStudyAndroid.jar ${filePath}`;
+    console.log("cmd: "+cmd);
+    await delay(2000); // Delay of 2000 milliseconds (2 seconds)
+
+    try {
+      const output = execSync(cmd);
+      console.log(`Command earmo output: ${output.toString()}`);
+    } catch (error) {
+      console.error(`Command earmo execution error: ${error}`);
+    }
+        
+    /*try {
+      copyFolder(`${earmoHome}/earmo/`, `${resultsPath}/test_results`, '.ini');
+    } catch (err) {
+      console.error('An error occurred:', err);
+      reject(err);
+    }
+    const directory = `${resultsPath}/test_results`;*/
+    const directory = `${earmoHome}/earmo/`;
+    const pattern = 'Total:\\d+';
+
+    const searchResults = searchPatternInIniFiles(directory, pattern);
+    console.log(JSON.stringify(searchResults, null, 2));
+
+    remove(`${earmoHome}/earmo/`);
+    remove(resultsPath);
+    resolve(searchResults);
   })
 }
 
