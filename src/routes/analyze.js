@@ -54,7 +54,7 @@ router.post('/', upload.single("binary"), (req, res) => {
 const downloadApk = (url) => {
   return new Promise((resolve, reject) => {
     const ts = Date.now()
-    const resultsDir = process.env.UPLOADS_HOME || "./data/uploads"
+    const resultsDir = process.env.UPLOADS_HOME || "/data/uploads"
     const resultsPath = `${resultsDir}/${ts}`
     fs.mkdirSync(resultsPath, { recursive: true })
     const fileName = `${ts}.apk`

@@ -14,6 +14,6 @@ services:
     environment:
       DELIVER_RESULTS_ENDPOINT: 'http://51.210.255.156:3000/api/result'
       EARMO_HOME: '/data/'
-      UPLOADS_HOME: ${UPLOADS_HOME}
+      UPLOADS_HOME: '/data/uploads'
     volumes:
       - '/data/greenstamp/analyzer-earmo-api:/data'
