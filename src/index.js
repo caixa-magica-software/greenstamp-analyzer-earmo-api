@@ -7,6 +7,6 @@ app.use(express.json())
 app.get('/_/health', (req, res) => res.sendStatus(200));
 app.use('/api/analyze', require('./routes/analyze'))
 
-app.listen(4003, () => {
+app.listen(3000, () => {
     console.log(`Earmo Analyzer API is listening at ${process.env.PORT || 3000}`);
 });
