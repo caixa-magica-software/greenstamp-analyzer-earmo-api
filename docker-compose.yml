@@ -2,18 +2,19 @@ version: '3'
 
 services:
 
-  analyzer-kadabra-api:
-    container_name: analyzer-kadabra-api
-    image: greenstamp/analyzer-kadabra-api
+  analyzer-earmo-api:
+    container_name: analyzer-earmo-api
+    image: greenstamp/analyzer-earmo-api
     build: 
       context: .
       dockerfile: Dockerfile
     restart: unless-stopped
     ports:
-      - 4000:3000
+      - 4003:3000
     environment:
       DELIVER_RESULTS_ENDPOINT: 'http://51.210.255.156:3000/api/result'
       EARMO_HOME: ${EARMO_HOME}
+      DEX2JAR_HOME: ${DEX2JAR_HOME}
       UPLOADS_HOME: ${UPLOADS_HOME}
     volumes:
-      - '/data/greenstamp/analyzer-kadabra-api:/data'
+      - '/data/greenstamp/analyzer-earmo-api:/data'
