@@ -1,4 +1,4 @@
-# analyzer-earmo
+# analyzer-earmo-api
 
 ## Earmo env
 
