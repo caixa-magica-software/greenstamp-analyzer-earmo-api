@@ -244,6 +244,8 @@ const doTests = (resultsPath, apkPath, tests, packageName) => {
     const earmoHome = process.env.EARMO_HOME
 
     console.log("resultsPath: " + resultsPath);
+    const fileName = path.basename(resultsPath);
+    console.log("fileName:" + fileName);
     console.log("apkPath: " + apkPath);
     console.log("packageName: " + packageName);
     
@@ -278,13 +280,13 @@ const doTests = (resultsPath, apkPath, tests, packageName) => {
     createTextFile(destinationDirectory, outputDirectory, filePath);
 
     try {
-      copyFolder(`${earmoHome}/earmo_executable/`, `${earmoHome}/earmo/`);
+      copyFolder(`${earmoHome}/earmo_executable/`, `${earmoHome}/earmo/${fileName}/`);
     } catch (err) {
       console.error('An error occurred copying earmo_executable:', err);
       reject(err);
     }
 
-    var cmd = `cd ${earmoHome}/earmo/ && ls && time java -jar RefactoringStandarStudyAndroid.jar ${filePath}`;
+    var cmd = `cd ${earmoHome}/earmo/${fileName}/ && ls && time java -jar RefactoringStandarStudyAndroid.jar ${filePath}`;
     console.log("cmd: "+cmd);
     await delay(2000); // Delay of 2000 milliseconds (2 seconds)
 
@@ -295,20 +297,13 @@ const doTests = (resultsPath, apkPath, tests, packageName) => {
       console.error(`Command earmo execution error: ${error}`);
     }
         
-    /*try {
-      copyFolder(`${earmoHome}/earmo/`, `${resultsPath}/test_results`, '.ini');
-    } catch (err) {
-      console.error('An error occurred:', err);
-      reject(err);
-    }
-    const directory = `${resultsPath}/test_results`;*/
-    const directory = `${earmoHome}/earmo/`;
+    const directory = `${earmoHome}/earmo/${fileName}/`;
     const pattern = 'Total:\\d+';
 
     const searchResults = searchPatternInIniFiles(directory, pattern);
     console.log(JSON.stringify(searchResults, null, 2));
 
-    remove(`${earmoHome}/earmo/`);
+    remove(directory);
     remove(resultsPath);
     resolve(searchResults);
   })
