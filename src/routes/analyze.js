@@ -280,13 +280,13 @@ const doTests = (resultsPath, apkPath, tests, packageName) => {
     createTextFile(destinationDirectory, outputDirectory, filePath);
 
     try {
-      copyFolder(`${earmoHome}/earmo_executable/`, `${earmoHome}/earmo/${fileName}/`);
+      copyFolder(`${earmoHome}/earmo_executable/`, `${earmoHome}/earmo_bin/${fileName}/`);
     } catch (err) {
       console.error('An error occurred copying earmo_executable:', err);
       reject(err);
     }
 
-    var cmd = `cd ${earmoHome}/earmo/${fileName}/ && ls && time java -jar RefactoringStandarStudyAndroid.jar ${filePath}`;
+    var cmd = `cd ${earmoHome}/earmo_bin/${fileName}/ && ls && time java -jar RefactoringStandarStudyAndroid.jar ${filePath}`;
     console.log("cmd: "+cmd);
     await delay(2000); // Delay of 2000 milliseconds (2 seconds)
 
@@ -297,7 +297,7 @@ const doTests = (resultsPath, apkPath, tests, packageName) => {
       console.error(`Command earmo execution error: ${error}`);
     }
         
-    const directory = `${earmoHome}/earmo/${fileName}/`;
+    const directory = `${earmoHome}/earmo_bin/${fileName}/`;
     const pattern = 'Total:\\d+';
 
     const searchResults = searchPatternInIniFiles(directory, pattern);
