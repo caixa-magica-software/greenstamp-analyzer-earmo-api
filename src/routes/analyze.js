@@ -191,7 +191,7 @@ function searchPatternInIniFiles(directory, pattern, testTime) {
           parameters: 'Earmo Analyze Tool',
           result: value,
           unit: 'detections',
-          time: testTime,
+          optional: testTime,
         });
       }
     }
