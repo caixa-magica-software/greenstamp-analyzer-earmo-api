@@ -165,7 +165,7 @@ function copyFolder(sourceDir, destinationDir, filePattern) {
   } 
 }
 
-function searchPatternInIniFiles(directory, pattern) {
+function searchPatternInIniFiles(directory, pattern, testTime) {
   const results = [];
 
   // Read the directory contents
@@ -191,6 +191,7 @@ function searchPatternInIniFiles(directory, pattern) {
           parameters: 'Earmo Analyze Tool',
           result: value,
           unit: 'detections',
+          time: testTime,
         });
       }
     }
@@ -248,6 +249,9 @@ const doTests = (resultsPath, apkPath, tests, packageName) => {
     console.log("fileName:" + fileName);
     console.log("apkPath: " + apkPath);
     console.log("packageName: " + packageName);
+
+    const timeoutStart = Date.now()
+    var testTime = 0
     
     var cmd = `cd ${resultsPath} && time ${earmoHome}/jadx/bin/jadx ${apkPath} -d ${resultsPath}/jadx`;
     console.log("cmd: "+cmd);
@@ -300,11 +304,16 @@ const doTests = (resultsPath, apkPath, tests, packageName) => {
     const directory = `${earmoHome}/earmo_bin/${fileName}/`;
     const pattern = 'Total:\\d+';
 
-    const searchResults = searchPatternInIniFiles(directory, pattern);
+    console.log("Test time (ms): " + (Date.now() - timeoutStart) ) // Test time in seconds
+    testTime = (Date.now() - timeoutStart) / 1000 / 60
+    console.log("Test time (minutes): " + testTime ) // Test time in minutes
+
+    const searchResults = searchPatternInIniFiles(directory, pattern, testTime);
     console.log(JSON.stringify(searchResults, null, 2));
 
     remove(directory);
     remove(resultsPath);
+
     resolve(searchResults);
   })
 }
