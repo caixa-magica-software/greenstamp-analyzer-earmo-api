@@ -311,8 +311,8 @@ const doTests = (resultsPath, apkPath, tests, packageName) => {
     const searchResults = searchPatternInIniFiles(directory, pattern, testTime);
     console.log(JSON.stringify(searchResults, null, 2));
 
-    remove(directory);
-    remove(resultsPath);
+    // remove(directory);
+    // remove(resultsPath);
 
     resolve(searchResults);
   })
