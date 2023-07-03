@@ -26,6 +26,9 @@ Command line and GUI tools for producing Java source code from Android Dex and A
 
 ``` jadx ApkPath -d OutputFolder -j 8 ```
 
+#### Install in server
+
+Copy the jadx software  to `EARMO_HOME`/jdx/.cd ..
 
 ## Earmo software
 
@@ -34,4 +37,8 @@ EARMO (Energy-Aware Refactoring Approach for Mobile Apps) is an anti-pattern cor
 ``` https://github.com/moar82/EARMO/wiki ```
 
 ``` java -jar RefactoringStandarStudyAndroid.jar conf.prop ```
+
+#### Install in server
+
+Extract the zip `earmo_server_files` in the /server folder to `EARMO_HOME`/earmo_executable/.
 
