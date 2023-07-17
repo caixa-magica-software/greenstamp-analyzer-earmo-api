@@ -40,5 +40,9 @@ EARMO (Energy-Aware Refactoring Approach for Mobile Apps) is an anti-pattern cor
 
 #### Install in server
 
-Extract the zip `earmo_server_files` in the /server folder to `EARMO_HOME`/earmo_executable/.
+Create a folder `EARMO_HOME`/earmo_executable/ with only the files (downloaded from previous link):
+
+- deltas.txt
+- RefactoringStandarStudyAndroid.jar
+
 
